@@ -1,0 +1,798 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>The Quest for the Shahbaz Draft Lottery</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            margin: 0;
+            padding: 20px;
+            color: #333;
+        }
+        
+        #app {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            width: 95%;
+            max-width: 1400px;
+        }
+        
+        h1 {
+            color: #4a5568;
+            margin-bottom: 20px;
+            text-align: center;
+            font-size: 2.5em;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.1);
+        }
+        
+        #timestampContainer {
+            text-align: center;
+            font-size: 1.1em;
+            color: #495057;
+            background: #f8f9fa;
+            padding: 10px 20px;
+            border-radius: 8px;
+            border: 1px solid #dee2e6;
+            margin-bottom: 20px;
+            font-family: 'Courier New', monospace;
+        }
+        
+        #timestamp {
+            color: #007bff;
+            font-weight: bold;
+        }
+        
+        #controls {
+            margin-bottom: 30px;
+        }
+        
+        .container {
+            display: flex;
+            flex-direction: row;
+            justify-content: space-between;
+            width: 100%;
+            gap: 20px;
+        }
+        
+        .left-section {
+            flex: 2;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+        
+        .right-section {
+            flex: 1;
+        }
+        
+        #projected, #locked, #actual {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 10px;
+            border: 1px solid #e9ecef;
+        }
+        
+        #projected h2, #locked h2, #actual h2 {
+            color: #495057;
+            margin-top: 0;
+            text-align: center;
+            font-size: 1.4em;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        
+        th, td {
+            padding: 12px 8px;
+            text-align: center;
+            border-bottom: 1px solid #dee2e6;
+        }
+        
+        th {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            font-weight: bold;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        
+        th:hover {
+            background-color: #5a6fd8;
+        }
+        
+        .eliminated {
+            background-color: #f8f9fa !important;
+            color: #6c757d !important;
+            text-decoration: line-through;
+            opacity: 0.6;
+        }
+        
+        .still-alive {
+            background-color: #d4edda;
+            font-weight: bold;
+        }
+        
+        .locked-team {
+            background-color: #fff3cd;
+        }
+        
+        .lottery-card {
+            background: white;
+            border: 1px solid #dee2e6;
+            border-radius: 6px;
+            padding: 8px 12px;
+            margin: 6px 0;
+            text-align: center;
+            transition: all 0.5s ease;
+            min-height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            font-size: 0.9em;
+        }
+        
+        .lottery-card.revealed {
+            background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+            color: white;
+            transform: scale(1.02);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+        }
+        
+        .lottery-card.current {
+            background: linear-gradient(135deg, #ffc107 0%, #fd7e14 100%);
+            border-color: #fd7e14;
+            transform: scale(1.05);
+            box-shadow: 0 6px 12px rgba(253, 126, 20, 0.3);
+            animation: pulse 1s infinite;
+        }
+        
+        @keyframes pulse {
+            0% { transform: scale(1.05); }
+            50% { transform: scale(1.08); }
+            100% { transform: scale(1.05); }
+        }
+        
+        .pick-number {
+            font-size: 1.1em;
+            font-weight: bold;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 50%;
+            width: 28px;
+            height: 28px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .team-name {
+            font-size: 1em;
+            font-weight: bold;
+        }
+        
+        button {
+            padding: 15px 30px;
+            margin: 10px;
+            cursor: pointer;
+            background: linear-gradient(135deg, #007bff 0%, #0056b3 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 1.3em;
+            font-weight: bold;
+            transition: all 0.3s;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        }
+        
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.3);
+        }
+        
+        button:disabled {
+            background: #6c757d;
+            cursor: not-allowed;
+            transform: none;
+        }
+        
+        #messageContainer {
+            margin: 20px 0;
+            padding: 20px;
+            font-size: 1.4em;
+            font-weight: bold;
+            text-align: center;
+            min-height: 60px;
+            border-radius: 10px;
+            background: linear-gradient(135deg, #17a2b8 0%, #138496 100%);
+            color: white;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .countdown {
+            font-size: 3em;
+            color: #dc3545;
+            font-weight: bold;
+            animation: countdownPulse 1s infinite;
+        }
+        
+        @keyframes countdownPulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+            100% { transform: scale(1); }
+        }
+        
+        .sticky-controls {
+            position: sticky;
+            top: 10px;
+            z-index: 100;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            padding: 15px;
+            border-radius: 10px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            margin-bottom: 20px;
+        }
+        
+        @media (max-width: 768px) {
+            body {
+                padding: 10px;
+            }
+            
+            #app {
+                padding: 15px;
+                width: 100%;
+            }
+            
+            h1 {
+                font-size: 1.8em;
+                margin-bottom: 15px;
+            }
+            
+            .container {
+                flex-direction: column;
+            }
+            
+            .left-section {
+                order: 2;
+            }
+            
+            .right-section {
+                order: 1;
+            }
+            
+            #messageContainer {
+                font-size: 1.1em;
+                padding: 15px;
+                min-height: 50px;
+                position: sticky;
+                top: 0;
+                z-index: 99;
+                margin: 0 0 15px 0;
+            }
+            
+            button {
+                padding: 12px 20px;
+                font-size: 1.1em;
+                width: 100%;
+                margin: 5px 0;
+            }
+            
+            .lottery-card {
+                padding: 6px 10px;
+                margin: 4px 0;
+                min-height: 35px;
+                font-size: 0.85em;
+            }
+            
+            .pick-number {
+                width: 24px;
+                height: 24px;
+                font-size: 1em;
+            }
+            
+            .team-name {
+                font-size: 0.9em;
+            }
+            
+            table {
+                font-size: 0.9em;
+            }
+            
+            th, td {
+                padding: 8px 4px;
+            }
+            
+            .countdown {
+                font-size: 2.5em;
+            }
+            
+            /* Hide detailed tables during lottery on mobile */
+            .mobile-lottery-hide {
+                display: none;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div id="app">
+        <h1>🏈 The Quest for the Shahbaz Draft Lottery 🏈</h1>
+        
+        <div id="timestampContainer">
+            <strong>Lottery Time:</strong> <span id="timestamp">Not yet run</span>
+        </div>
+        
+        <div id="messageContainer">
+            Click "Start Lottery" to begin the excitement!
+        </div>
+        
+        <div id="controls" class="sticky-controls">
+            <button id="startBtn" onclick="startLottery()">Start Lottery</button>
+            <button id="resetBtn" onclick="resetLottery()" disabled>Reset Lottery</button>
+        </div>
+        
+        <div class="container">
+            <div class="left-section">
+                <div id="projected">
+                    <h2>🎲 Lottery Teams</h2>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th onclick="sortTable('name')">Team</th>
+                                <th onclick="sortTable('oddsFirst')">Odds for 1st</th>
+                                <th onclick="sortTable('oddsTop4')">Odds for Top 4</th>
+                                <th onclick="sortTable('seasonFinish')">Season Finish</th>
+                            </tr>
+                        </thead>
+                        <tbody id="projectedOrder"></tbody>
+                    </table>
+                </div>
+                
+                <div id="locked">
+                    <h2>🔒 Locked Teams (Semifinalists)</h2>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Team</th>
+                                <th>Guaranteed Pick</th>
+                                <th>Season Finish</th>
+                            </tr>
+                        </thead>
+                        <tbody id="lockedOrder"></tbody>
+                    </table>
+                </div>
+            </div>
+            
+            <div class="right-section">
+                <div id="actual">
+                    <h2>🏆 Draft Order Results</h2>
+                    <div id="teamsList">
+                        <!-- Lottery cards will be inserted here -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const teams = [
+            { name: 'Kendall', oddsFirst: 25.00, oddsTop4: 40.67, seasonFinish: 9, lotteryRank: 8 },
+            { name: 'Joey', oddsFirst: 20.00, oddsTop4: 32.53, seasonFinish: 10, lotteryRank: 7 },
+            { name: 'Anthony', oddsFirst: 15.00, oddsTop4: 24.40, seasonFinish: 12, lotteryRank: 5 },
+            { name: 'Zack', oddsFirst: 12.00, oddsTop4: 19.52, seasonFinish: 11, lotteryRank: 6 },
+            { name: 'Alfred', oddsFirst: 6.00, oddsTop4: 9.76, seasonFinish: 13, lotteryRank: 4 },
+            { name: 'Prashant', oddsFirst: 5.00, oddsTop4: 8.13, seasonFinish: 14, lotteryRank: 3 },
+            { name: 'Rohan', oddsFirst: 4.00, oddsTop4: 6.51, seasonFinish: 16, lotteryRank: 1 },
+            { name: 'Calvin', oddsFirst: 4.00, oddsTop4: 6.51, seasonFinish: 2, lotteryRank: 12 },
+            { name: 'Shaun', oddsFirst: 3.00, oddsTop4: 4.88, seasonFinish: 15, lotteryRank: 2 },
+            { name: 'Henry', oddsFirst: 3.00, oddsTop4: 4.88, seasonFinish: 8, lotteryRank: 9 },
+            { name: 'Minh', oddsFirst: 2.00, oddsTop4: 3.25, seasonFinish: 5, lotteryRank: 11 },
+            { name: 'Aaron', oddsFirst: 1.00, oddsTop4: 1.63, seasonFinish: 6, lotteryRank: 10 }
+        ];
+
+        const lockedTeams = [
+            { name: 'Matt', seasonFinish: 7, guaranteedPick: '13th' },
+            { name: 'John D', seasonFinish: 4, guaranteedPick: '14th' },
+            { name: 'Karan', seasonFinish: 3, guaranteedPick: '15th' },
+            { name: 'Nick', seasonFinish: 1, guaranteedPick: '16th' }
+        ];
+
+        let lotteryResults = [];
+        let currentRevealIndex = 0;
+        let isLotteryRunning = false;
+        let eliminatedTeams = new Set();
+        let remainingLotteryTeams = [...teams];
+        let detectedJumpers = new Set();
+
+        // Define the safe zones for each team (picks they could land in without jumping)
+        function getSafeZone(lotteryRank) {
+            const maxPick = Math.min(12, lotteryRank + 4); // Can't go past pick 12
+            const minPick = Math.max(5, lotteryRank); // Can't go higher than pick 5 (top 4 is separate)
+            return { minPick, maxPick };
+        }
+
+        function detectJumpers(pickNumber, revealedTeam) {
+            // First, figure out who SHOULD be at this pick based on standings
+            const expectedTeamForThisPick = getExpectedTeamForPick(pickNumber);
+            
+            // If the revealed team is exactly who we expected, no jumps detected
+            if (revealedTeam === expectedTeamForThisPick) {
+                return [];
+            }
+            
+            // If someone else is here, check if the expected team was already revealed
+            if (eliminatedTeams.has(expectedTeamForThisPick)) {
+                // Expected team was already revealed earlier, so no jump
+                return [];
+            }
+            
+            // If the expected team wasn't revealed yet and isn't here, they jumped to top 4!
+            if (!detectedJumpers.has(expectedTeamForThisPick)) {
+                detectedJumpers.add(expectedTeamForThisPick);
+                return [`${expectedTeamForThisPick} jumped into the top 4`];
+            }
+            
+            return [];
+        }
+
+        function getExpectedTeamForPick(pickNumber) {
+            // Expected picks if NO ONE jumps (0 jumpers column from our table)
+            const expectedPickMap = {
+                5: 'Anthony',    // lottery rank 5 → pick 5
+                6: 'Zack',       // lottery rank 6 → pick 6  
+                7: 'Joey',       // lottery rank 7 → pick 7
+                8: 'Kendall',    // lottery rank 8 → pick 8
+                9: 'Henry',      // lottery rank 9 → pick 9
+                10: 'Aaron',     // lottery rank 10 → pick 10
+                11: 'Minh',      // lottery rank 11 → pick 11
+                12: 'Calvin'     // lottery rank 12 → pick 12
+            };
+            
+            return expectedPickMap[pickNumber] || null;
+        }
+
+        function populateInitialTables() {
+            const projectedOrderBody = document.getElementById('projectedOrder');
+            const lockedOrderBody = document.getElementById('lockedOrder');
+            
+            projectedOrderBody.innerHTML = '';
+            lockedOrderBody.innerHTML = '';
+
+            // Sort lottery teams by season finish (worst to best)
+            const sortedLotteryTeams = [...teams].sort((a, b) => b.seasonFinish - a.seasonFinish);
+            
+            sortedLotteryTeams.forEach(team => {
+                const row = document.createElement('tr');
+                row.id = `lottery-row-${team.name}`;
+                row.innerHTML = `
+                    <td><strong>${team.name}</strong></td>
+                    <td>${team.oddsFirst.toFixed(1)}%</td>
+                    <td>${team.oddsTop4.toFixed(1)}%</td>
+                    <td>${team.seasonFinish}</td>
+                `;
+                projectedOrderBody.appendChild(row);
+            });
+
+            lockedTeams.forEach(team => {
+                const row = document.createElement('tr');
+                row.className = 'locked-team';
+                row.innerHTML = `
+                    <td><strong>${team.name}</strong></td>
+                    <td>${team.guaranteedPick}</td>
+                    <td>${team.seasonFinish}</td>
+                `;
+                lockedOrderBody.appendChild(row);
+            });
+
+            createLotteryCards();
+        }
+
+        function createLotteryCards() {
+            const container = document.getElementById('teamsList');
+            container.innerHTML = '';
+
+            // Create cards for picks 1-12 (lottery + remaining)
+            for (let i = 1; i <= 12; i++) {
+                const card = document.createElement('div');
+                card.className = 'lottery-card';
+                card.id = `card-${i}`;
+                card.innerHTML = `
+                    <div class="pick-number">${i}</div>
+                    <div class="team-name" id="team-${i}">???</div>
+                `;
+                container.appendChild(card);
+            }
+
+            // Add locked team cards
+            lockedTeams.forEach((team, index) => {
+                const card = document.createElement('div');
+                card.className = 'lottery-card revealed locked-team';
+                card.innerHTML = `
+                    <div class="pick-number">${13 + index}</div>
+                    <div class="team-name">${team.name}</div>
+                `;
+                container.appendChild(card);
+            });
+        }
+
+        function updateMessage(message) {
+            document.getElementById('messageContainer').innerHTML = message;
+        }
+
+        function createWeightedArray(teams) {
+            let weightedArray = [];
+            teams.forEach(team => {
+                for (let i = 0; i < team.oddsFirst; i++) {
+                    weightedArray.push(team.name);
+                }
+            });
+            return weightedArray;
+        }
+
+        function selectTopPicks(teams, count) {
+            let picks = [];
+            let remaining = [...teams];
+
+            for (let i = 0; i < count; i++) {
+                const weightedArray = createWeightedArray(remaining);
+                const randomIndex = Math.floor(Math.random() * weightedArray.length);
+                const winner = weightedArray[randomIndex];
+                picks.push(winner);
+                remaining = remaining.filter(team => team.name !== winner);
+            }
+
+            return picks;
+        }
+
+        async function startLottery() {
+            if (isLotteryRunning) return;
+            
+            // Set the timestamp when lottery starts
+            const now = new Date();
+            const timestampString = now.toLocaleString('en-US', {
+                weekday: 'long',
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit',
+                second: '2-digit',
+                timeZoneName: 'short'
+            });
+            document.getElementById('timestamp').textContent = timestampString;
+            
+            isLotteryRunning = true;
+            document.getElementById('startBtn').disabled = true;
+            document.getElementById('resetBtn').disabled = false;
+            
+            // Mobile: Hide detailed tables during lottery
+            if (window.innerWidth <= 768) {
+                document.getElementById('projected').classList.add('mobile-lottery-hide');
+                document.getElementById('locked').classList.add('mobile-lottery-hide');
+            }
+            
+            // Run the lottery algorithm
+            const lotteryTeams = [...teams];
+            const top4Picks = selectTopPicks(lotteryTeams, 4);
+            const remainingPicks = lotteryTeams
+                .filter(team => !top4Picks.includes(team.name))
+                .sort((a, b) => b.seasonFinish - a.seasonFinish)
+                .map(team => team.name);
+            
+            lotteryResults = [...top4Picks, ...remainingPicks];
+            
+            // Reset state
+            currentRevealIndex = 0;
+            eliminatedTeams.clear();
+            remainingLotteryTeams = [...teams];
+            
+            updateMessage("The lottery is about to begin! Revealing picks 12 through 5...");
+            
+            // Start revealing from pick 12 down to 5
+            setTimeout(() => revealNextPick(), 1500);
+        }
+
+        async function revealNextPick() {
+            if (currentRevealIndex >= 8) { // Picks 12 down to 5 (8 total)
+                await revealTop4();
+                return;
+            }
+
+            const pickNumber = 12 - currentRevealIndex; // 12, 11, 10, 9, 8, 7, 6, 5
+            const teamName = lotteryResults[pickNumber - 1];
+            
+            // Highlight current card
+            const currentCard = document.getElementById(`card-${pickNumber}`);
+            currentCard.classList.add('current');
+            
+            updateMessage(`The ${getOrdinal(pickNumber)} pick is...`);
+            
+            await new Promise(resolve => setTimeout(resolve, 1500));
+            
+            // Reveal the team
+            document.getElementById(`team-${pickNumber}`).textContent = teamName;
+            currentCard.classList.remove('current');
+            currentCard.classList.add('revealed');
+            
+            // Mark team as eliminated
+            eliminatedTeams.add(teamName);
+            const teamRow = document.getElementById(`lottery-row-${teamName}`);
+            if (teamRow) {
+                teamRow.classList.add('eliminated');
+            }
+            
+            // Remove from remaining lottery teams
+            remainingLotteryTeams = remainingLotteryTeams.filter(team => team.name !== teamName);
+            
+            // Detect any jumpers based on this reveal
+            const jumpMessages = detectJumpers(pickNumber, teamName);
+            
+            // Create the reveal message
+            let revealMessage = `${teamName}!`;
+            if (jumpMessages.length > 0) {
+                const jumpText = jumpMessages.length === 1 ? 
+                    jumpMessages[0] : 
+                    jumpMessages.slice(0, -1).join(', ') + ' and ' + jumpMessages[jumpMessages.length - 1];
+                revealMessage += ` ${jumpText}!`;
+            }
+            
+            updateMessage(revealMessage);
+            
+            currentRevealIndex++;
+            
+            if (currentRevealIndex < 8) {
+                setTimeout(() => revealNextPick(), 2000);
+            } else {
+                setTimeout(() => revealTop4(), 1500);
+            }
+        }
+
+        async function revealTop4() {
+            updateMessage("NOW FOR THE MOMENT WE'VE ALL BEEN WAITING FOR...");
+            await new Promise(resolve => setTimeout(resolve, 1500));
+            
+            updateMessage("THE TOP 4 PICKS!");
+            await new Promise(resolve => setTimeout(resolve, 1500));
+            
+            // Highlight remaining teams
+            remainingLotteryTeams.forEach(team => {
+                const teamRow = document.getElementById(`lottery-row-${team.name}`);
+                if (teamRow) {
+                    teamRow.classList.add('still-alive');
+                }
+            });
+            
+            // Countdown for the top 4 order reveal
+            updateMessage("Determining the top 4 order...");
+            await new Promise(resolve => setTimeout(resolve, 1500));
+            
+            for (let i = 3; i >= 1; i--) {
+                updateMessage(`<div class="countdown">${i}</div>`);
+                await new Promise(resolve => setTimeout(resolve, 800));
+            }
+            
+            // Reveal 4th pick
+            await revealTopPick(4, "Fourth");
+            await new Promise(resolve => setTimeout(resolve, 2000));
+            
+            // Reveal 3rd pick
+            await revealTopPick(3, "Third");
+            await new Promise(resolve => setTimeout(resolve, 2000));
+            
+            // Reveal 2nd pick
+            await revealTopPick(2, "Second");
+            await new Promise(resolve => setTimeout(resolve, 2000));
+            
+            // Reveal 1st pick (no extra suspense since it's the last remaining)
+            await revealTopPick(1, "FIRST");
+            
+            finalizeLottery();
+        }
+
+        // Remove the old countdown function since it's no longer needed
+
+        async function revealTopPick(pickNum, ordinalWord) {
+            const teamName = lotteryResults[pickNum - 1];
+            const card = document.getElementById(`card-${pickNum}`);
+            
+            card.classList.add('current');
+            updateMessage(`The ${ordinalWord} pick is...`);
+            
+            await new Promise(resolve => setTimeout(resolve, 1500));
+            
+            document.getElementById(`team-${pickNum}`).textContent = teamName;
+            card.classList.remove('current');
+            card.classList.add('revealed');
+            
+            // Remove from remaining teams and mark as eliminated
+            remainingLotteryTeams = remainingLotteryTeams.filter(team => team.name !== teamName);
+            const teamRow = document.getElementById(`lottery-row-${teamName}`);
+            if (teamRow) {
+                teamRow.classList.remove('still-alive');
+                teamRow.classList.add('eliminated');
+            }
+            
+            if (pickNum === 1) {
+                updateMessage(`🏆 ${teamName}! 🏆`);
+            } else {
+                updateMessage(`${teamName}!`);
+            }
+        }
+
+        function finalizeLottery() {
+            isLotteryRunning = false;
+            
+            // Mobile: Show tables again
+            if (window.innerWidth <= 768) {
+                document.getElementById('projected').classList.remove('mobile-lottery-hide');
+                document.getElementById('locked').classList.remove('mobile-lottery-hide');
+            }
+            
+            setTimeout(() => {
+                updateMessage("🎉 Lottery Complete! The draft order has been set! 🎉");
+            }, 2000);
+        }
+
+        function resetLottery() {
+            isLotteryRunning = false;
+            currentRevealIndex = 0;
+            eliminatedTeams.clear();
+            remainingLotteryTeams = [...teams];
+            detectedJumpers.clear();
+            lotteryResults = [];
+            
+            document.getElementById('startBtn').disabled = false;
+            document.getElementById('resetBtn').disabled = true;
+            
+            // Reset timestamp
+            document.getElementById('timestamp').textContent = 'Not yet run';
+            
+            // Mobile: Show tables again
+            if (window.innerWidth <= 768) {
+                document.getElementById('projected').classList.remove('mobile-lottery-hide');
+                document.getElementById('locked').classList.remove('mobile-lottery-hide');
+            }
+            
+            // Reset all visual elements
+            teams.forEach(team => {
+                const teamRow = document.getElementById(`lottery-row-${team.name}`);
+                if (teamRow) {
+                    teamRow.classList.remove('eliminated', 'still-alive');
+                }
+            });
+            
+            createLotteryCards();
+            updateMessage("Click 'Start Lottery' to begin the excitement!");
+        }
+
+        function getOrdinal(num) {
+            const suffixes = ["th", "st", "nd", "rd"];
+            const mod100 = num % 100;
+            return num + (suffixes[(mod100 - 20) % 10] || suffixes[mod100] || suffixes[0]);
+        }
+
+        // Initialize on page load
+        document.addEventListener('DOMContentLoaded', () => {
+            populateInitialTables();
+        });
+    </script>
+</body>
+</html>
