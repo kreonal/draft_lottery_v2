@@ -651,7 +651,7 @@
                 const jumpText = jumpMessages.length === 1 ? 
                     jumpMessages[0] : 
                     jumpMessages.slice(0, -1).join(', ') + ' and ' + jumpMessages[jumpMessages.length - 1];
-                revealMessage += ` ${jumpText}!`;
+                revealMessage += `<br>${jumpText}!`;
             }
             
             updateMessage(revealMessage);
@@ -752,35 +752,7 @@
         }
 
         function resetLottery() {
-            isLotteryRunning = false;
-            currentRevealIndex = 0;
-            eliminatedTeams.clear();
-            remainingLotteryTeams = [...teams];
-            detectedJumpers.clear();
-            lotteryResults = [];
-            
-            document.getElementById('startBtn').disabled = false;
-            document.getElementById('resetBtn').disabled = true;
-            
-            // Reset timestamp
-            document.getElementById('timestamp').textContent = 'Not yet run';
-            
-            // Mobile: Show tables again
-            if (window.innerWidth <= 768) {
-                document.getElementById('projected').classList.remove('mobile-lottery-hide');
-                document.getElementById('locked').classList.remove('mobile-lottery-hide');
-            }
-            
-            // Reset all visual elements
-            teams.forEach(team => {
-                const teamRow = document.getElementById(`lottery-row-${team.name}`);
-                if (teamRow) {
-                    teamRow.classList.remove('eliminated', 'still-alive');
-                }
-            });
-            
-            createLotteryCards();
-            updateMessage("Click 'Start Lottery' to begin the excitement!");
+            location.reload();
         }
 
         function getOrdinal(num) {
